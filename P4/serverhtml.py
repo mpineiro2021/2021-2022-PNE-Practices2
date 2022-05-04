@@ -10,9 +10,8 @@ PORT = 8080
 
 def process_client(s):
     # -- Receive the request message
-    req_raw = s.recv(2000)
+    req_raw = s.recv(2048)
     req = req_raw.decode()
-
     print("Message FROM CLIENT: ")
 
     # -- Split the request messages into lines
@@ -31,20 +30,14 @@ def process_client(s):
     # blank line
     # Body (content to send)
     route = req_line.split(" ")[1]
-    try:
-        if route == "/":
-            body = pathlib.Path("index1.html").read_text()
-        elif route == "/favicon.ico":
-            body = pathlib.Path("index1.html").read_text()
-        elif route:
 
-            filename = route[1:]
-            body = pathlib.Path(filename + ".html").read_text()
-    except FileNotFoundError:
+    if route == "/":
         body = pathlib.Path("index1.html").read_text()
-
-
-
+    elif route == "/favicon.ico":
+        body = pathlib.Path("index1.html").read_text()
+    else:
+        filename = route[1:]
+        body = pathlib.Path( filename + ".html").read_text()
 
     # This new contents are written in HTML language
 
