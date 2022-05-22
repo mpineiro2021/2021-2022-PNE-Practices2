@@ -1,7 +1,7 @@
 import http.server
 import socketserver
 import termcolor
-import pathlib
+from pathlib import Path
 
 # Define the Server's port
 PORT = 8080
@@ -31,16 +31,18 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         print("  Path: " + self.path)
         route = self.requestline.split(" ")[1]
         try:
-            if route == "/":
-                contents = pathlib.Path("index1.html").read_text()
-            elif route == "/favicon.ico":
-                contents = pathlib.Path("index1.html").read_text()
-            elif route:
+            if route == "/" or route == "/favicon.ico":
+                contents = Path("index.html").read_text()
+                self.send_response(200)
 
-                filename = route[1:]
-                contents = pathlib.Path(filename + ".html").read_text()
+            elif route:
+                filename = route[1:] #quita la barra
+                contents = Path(filename + ".html").read_text()
+                self.send_response(200)
+
         except FileNotFoundError:
-            contents = pathlib.Path("index1.html").read_text()
+            contents = Path("error.html").read_text()
+            self.send_response(404)
 
         # IN this simple server version:
         # We are NOT processing the client's request
@@ -79,5 +81,5 @@ with socketserver.TCPServer(("", PORT), Handler) as httpd:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("")
-        print("Stoped by the user")
+        print("Stopped by the user")
         httpd.server_close()

@@ -35,7 +35,7 @@ def process_client(client_socket):
     elif path == "/info/T":
         body = Path("T.html").read_text()'''
     if path == "/":
-        body = Path("index1.html").read_text()
+        body = Path("index.html").read_text()
         status_line = "HTTP/1.1 200 OK\n"
 
     elif path.startswith("/info/"):
