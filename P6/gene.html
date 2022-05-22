@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Get</title>
-    </head>
-    <body>
-        <p>Gene: {gene_name}</p>
-        <textarea rows="60" cols="60">{sequence}</textarea><br>
-        <a href="/"> Main page</a>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <title>Seq2 Server</title>
+</head>
+<body>
+    <h2>Gene name: {{context.gene_name}}</h2>
+    Sequence: <p><textarea>{{context.sequence}} </textarea></p>
+    <a href="/">Main page</a>
+</body>
 </html>

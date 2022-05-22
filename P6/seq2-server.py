@@ -4,14 +4,16 @@ import termcolor
 from pathlib import Path
 import jinja2 as j
 from urllib.parse import parse_qs, urlparse
+from Sequence import Seq
 
 HTML_FOLDER = "./html/"
-LIST_SEQUENCES = ["ACGTCCAGTAAA", "ACGTAGTTTTTAAACCC", "GGGTAAACTACG",
-                  "CGTAGTACGTA", "TGCATGCCGAT", "ATATATATATATATATATA"]
-LIST_GENES = ["ADA", "FRAT1", "FXN", "RNU5A", "U5"]
+
+
+GENE_LIST = ["ADA", "FRAT1", "FXN", "RNU6_269P", "U5"]
+SEQUENCES_LIST = ["AAAAAAAAAT", "AAACCCCCCCTTTTGGGA", "CCCCCCCGGCGCA", "TTTATATATTATA", "GGGAGAGAGTCTCTCA", "TAATCGAAACCC"]
 
 def read_html_file(filename):
-    contents = Path(HTML_FOLDER + filename).read_text()
+    contents = Path( filename).read_text()
     contents = j.Template(contents)
     return contents
 
@@ -56,56 +58,35 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         in the HTTP protocol request"""
         # Print the request line
         termcolor.cprint(self.requestline, 'green')
-
-        # IN this simple server version:
-        # We are NOT processing the client's request
-        # It is a happytest server: It always returns a message saying
-        # that everything is ok
-        url_path = urlparse(self.path)
+        url_path = urlparse(self.path)# a la función urlparse se le pasa el path
         path = url_path.path
         arguments = parse_qs(url_path.query)
-        print("The old path was", self.path)
         print("The new path is", url_path.path)
         print("arguments", arguments)
         # Message to send back to the clinet
         if self.path == "/":
-            contents = read_html_file("index.html")\
-                .render(context=
-                        {"n_sequences": len(LIST_SEQUENCES),
-                         "genes": LIST_GENES})
+            contents = read_html_file("index.html").render(context={"n_sequences": len(SEQUENCES_LIST),"genes":GENE_LIST})
         elif path == "/ping":
             contents = read_html_file(path[1:] + ".html").render()
         elif path == "/get":
             n_sequence = int(arguments["n_sequence"][0])
-            sequence = LIST_SEQUENCES[n_sequence]
+            sequence = SEQUENCES_LIST[n_sequence]
             contents = read_html_file(path[1:] + ".html")\
-                .render(context = {
-                "n_sequence": n_sequence,
-                "sequence": sequence
-            })
+                .render(context = {"n_sequence": n_sequence,"sequence": sequence})
         elif path == "/gene":
             gene_name = arguments["gene_name"][0]
             sequence = Path("./sequences/" + gene_name + ".txt").read_text()
             contents = read_html_file(path[1:] + ".html") \
-                .render(context={
-                "gene_name": gene_name,
-                "sequence": sequence
-            })
+                .render(context={"gene_name": gene_name,"sequence": sequence})
         elif path == "/operation":
             sequence = arguments["sequence"][0]
             operation = arguments["operation"][0]
             if operation == "rev":
                 contents = read_html_file(path[1:] + ".html") \
-                    .render(context={
-                    "operation": operation,
-                    "result": seq.reverse()
-                })
+                    .render(context={"operation": operation,"result": Seq.reverse()})
             elif operation == "info":
                 contents = read_html_file(path[1:] + ".html") \
-                    .render(context={
-                    "operation": operation,
-                    "result": info_operation(sequence)
-                })
+                    .render(context={"operation": operation,"result": info_operation(sequence)})
         else:
             contents = "I am the happy server! :-)"
 

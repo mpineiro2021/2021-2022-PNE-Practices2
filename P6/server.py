@@ -35,7 +35,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         route = self.requestline.split(" ")[1]
         try:
             if route == "/" or route == "/favicon.ico":
-                contents = Path("form-1.html").read_text()
+                contents = Path("index.html").read_text()
                 self.send_response(200)
             elif route == "/ping?":
                 parsed_url = urlparse(route)
