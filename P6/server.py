@@ -2,112 +2,109 @@ import http.server
 import socketserver
 import termcolor
 from pathlib import Path
-import jinja2 as j
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import urlparse, parse_qs
+from Sequence import Seq
+import os
 
-HTML_FOLDER = "./html/"
-LIST_SEQUENCES = ["ACGTCCAGTAAA", "ACGTAGTTTTTAAACCC", "GGGTAAACTACG",
-                  "CGTAGTACGTA", "TGCATGCCGAT", "ATATATATATATATATATA"]
-LIST_GENES = ["ADA", "FRAT1", "FXN", "RNU5A", "U5"]
-
-def read_html_file(filename):
-    contents = Path(HTML_FOLDER + filename).read_text()
-    contents = j.Template(contents)
-    return contents
-
-
-def count_bases(seq):
-    d = {"A": 0, "C": 0, "G": 0, "T": 0}
-    for b in seq:
-        d[b] += 1
-
-    total = sum(d.values())
-    for k,v in d.items():
-        d[k] = [v, (v * 100) / total]
-    return d
-
-
-def convert_message(base_count):
-    message = ""
-    for k,v in base_count.items():
-        message += k + ": " + str(v[0]) + " (" + str(v[1]) + "%)" +"\n"
-    return message
-
-def info_operation(arg):
-    base_count = count_bases(arg)
-    response = "<p> Sequence: " + arg + "</p>"
-    response += "<p> Total length: " + str(len(arg)) + "</p>"
-    response += convert_message(base_count)
-    return response
 
 # Define the Server's port
 PORT = 8080
 
 # -- This is for preventing the error: "Port already in use"
 socketserver.TCPServer.allow_reuse_address = True
-
+GENE_LIST = ["ADA", "FRAT1", "FXN", "RNU6_269P", "U5"]
+SEQUENCES_LIST = ["AAAAAAAAAT", "AAACCCCCCCTTTTGGGA", "CCCCCCCGGCGCA", "TTTATATATTATA", "GGGAGAGAGTCTCTCA", "TAATCGAAACCC"]
 
 # Class with our Handler. It is a called derived from BaseHTTPRequestHandler
 # It means that our class inheritates all his methods and properties
-class TestHandler(http.server.BaseHTTPRequestHandler):
+class RequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
-        """This method is called whenever the client invokes the GET method
-        in the HTTP protocol request"""
+
+        # We just print a message
+        print("GET received! Request line:")
+
         # Print the request line
-        termcolor.cprint(self.requestline, 'green')
+        termcolor.cprint("  " + self.requestline, 'green')
+
+        # Print the command received (should be GET)
+        print("  Command: " + self.command)
+
+        # Print the resource requested (the path)
+        print("  Path: " + self.path)
+        route = self.requestline.split(" ")[1]
+        try:
+            if route == "/" or route == "/favicon.ico":
+                contents = Path("form-1.html").read_text()
+                self.send_response(200)
+            elif route == "/ping?":
+                parsed_url = urlparse(route)
+                param = parse_qs(parsed_url.query)
+                contents = Path("ping.html").read_text()
+
+            elif route.startswith("/get"):#han rellenado y enviado el formulario
+                parsed_url = urlparse(route)
+                param = parse_qs(parsed_url.query)#diccionario con la clase msg y con valor asociado una lista con el string que recive
+                try:
+                    sequence = Seq()
+                    sequence_number= int(param['sequence_number'][0])#clave sequence_number que eliges en el desplegable, accedo a la posición 0(la unica que hay)
+                    filename = os.path.join(".","sequences", f"{SEQUENCES_LIST[sequence_number]}.txt")
+                    sequence.seq_read_fasta(filename)
+                    contents = Path("get.html")
+                    self.send_response(200)
+
+                except (ValueError, IndexError):
+                    contents = Path(f"error.html").read_text()
+                    self.send_response(404)
+
+            elif route.startswith("/gene?"):
+                parsed_url = urlparse(route)
+                param = parse_qs(parsed_url.query)
+                try:
+                    sequence = Seq()
+                    gene_name = param['gene_name'][0]#clave sequence_number que eliges en el desplegable, accedo a la posición 0(la unica que hay)
+                    filename = os.path.join(".","sequences", f"{gene_name}.txt")
+                    sequence.seq_read_fasta(filename)
+                    contents = Path("gene.html").read_text()
+                    self.send_response(200)
+
+                except IndexError:
+                    contents = Path(f"error.html").read_text()
+                    self.send_response(404)
+            elif route.startswith("/operation?"):
+                parsed_url = urlparse(route)
+                param = parse_qs(parsed_url.query)
+                try:
+                    bases = param['bases'][0]
+                    operation = param['operation'][0]
+                    if operation in ["complementary", "reverse", "information"]:
+                        sequence = Seq(bases)
+                        contents = Path("operation.html").read_text()
+                        if operation == "information":
+                            contents += f"<p> {sequence.info()}</p>"
+                        elif operation == "complementary":
+                            contents += f"<p> {sequence.complement()}</p>"
+                        elif operation == "reverse":
+                            contents += f"<p> {sequence.reverse()}</p>"
+                        self.send_response(200)
+                    else:
+                        contents = Path("error.html").read_text()
+                        self.send_response(404)
+                except IndexError:
+                    contents = Path("error.html").read_text()
+                    self.send_response(404)
+            else:
+                contents = Path("error.html").read_text()
+                self.send_response(404)
+
+
+        except FileNotFoundError:
+            contents = Path("error.html").read_text()
+            self.send_response(404)
 
         # IN this simple server version:
         # We are NOT processing the client's request
-        # It is a happytest server: It always returns a message saying
-        # that everything is ok
-        url_path = urlparse(self.path)
-        path = url_path.path
-        arguments = parse_qs(url_path.query)
-        print("The old path was", self.path)
-        print("The new path is", url_path.path)
-        print("arguments", arguments)
-        # Message to send back to the clinet
-        if self.path == "/":
-            contents = read_html_file("index.html")\
-                .render(context=
-                        {"n_sequences": len(LIST_SEQUENCES),
-                         "genes": LIST_GENES})
-        elif path == "/ping":
-            contents = read_html_file(path[1:] + ".html").render()
-        elif path == "/get":
-            n_sequence = int(arguments["n_sequence"][0])
-            sequence = LIST_SEQUENCES[n_sequence]
-            contents = read_html_file(path[1:] + ".html")\
-                .render(context = {
-                "n_sequence": n_sequence,
-                "sequence": sequence
-            })
-        elif path == "/gene":
-            gene_name = arguments["gene_name"][0]
-            sequence = Path("./sequences/" + gene_name + ".txt").read_text()
-            contents = read_html_file(path[1:] + ".html") \
-                .render(context={
-                "gene_name": gene_name,
-                "sequence": sequence
-            })
-        elif path == "/operation":
-            sequence = arguments["sequence"][0]
-            operation = arguments["operation"][0]
-            if operation == "rev":
-                contents = read_html_file(path[1:] + ".html") \
-                    .render(context={
-                    "operation": operation,
-                    "result": seq.reverse()
-                })
-            elif operation == "info":
-                contents = read_html_file(path[1:] + ".html") \
-                    .render(context={
-                    "operation": operation,
-                    "result": info_operation(sequence)
-                })
-        else:
-            contents = "I am the happy server! :-)"
+        # We are NOT generating any response message
 
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!
@@ -129,7 +126,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
 # - Server MAIN program
 # ------------------------
 # -- Set the new handler
-Handler = TestHandler
+Handler = RequestHandler
 
 # -- Open the socket server
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
