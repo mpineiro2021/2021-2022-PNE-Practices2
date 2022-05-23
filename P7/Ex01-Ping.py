@@ -30,7 +30,7 @@ if r1.status == 200: #se puede cambiar por HTTPStatus.OK
     print(f"Response received!: {r1.status} {r1.reason}\n")
     print()
 
-
+#1:32
 data = r1.read().decode("utf-8")
 ping = json.loads(data)
 print(ping)
