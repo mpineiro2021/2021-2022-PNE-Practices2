@@ -1,7 +1,7 @@
 class Seq:
     BASES_ALLOWED = ["A", "C", "G", "T"]
     COMPLEMENTS = {"A": "T", "C": "G", "G": "C", "T": "A"}
-    NUMBERS = COMPLEMENTS = {"A": 2, "C": -1, "G": 3, "T": 5}
+    NUMBERS = COMPLEMENT = {"A": 2, "C": -1, "G": 3, "T": 5}
     @staticmethod
     def validate_sequence(bases):
         valid = len(bases) != 0

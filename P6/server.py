@@ -35,12 +35,12 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         route = self.requestline.split(" ")[1]
         try:
             if route == "/" or route == "/favicon.ico":
-                contents = Path("index.html").read_text()
+                contents = Path("html/index.html").read_text()
                 self.send_response(200)
             elif route == "/ping?":
                 parsed_url = urlparse(route)
                 param = parse_qs(parsed_url.query)
-                contents = Path("ping.html").read_text()
+                contents = Path("html/ping.html").read_text()
 
             elif route.startswith("/get"):#han rellenado y enviado el formulario
                 parsed_url = urlparse(route)
@@ -50,11 +50,11 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     sequence_number= int(param['sequence_number'][0])#clave sequence_number que eliges en el desplegable, accedo a la posición 0(la unica que hay)
                     filename = os.path.join(".","sequences", f"{SEQUENCES_LIST[sequence_number]}.txt")
                     sequence.seq_read_fasta(filename)
-                    contents = Path("get.html")
+                    contents = Path("html/get.html")
                     self.send_response(200)
 
                 except (ValueError, IndexError):
-                    contents = Path(f"error.html").read_text()
+                    contents = Path(f"html/error.html").read_text()
                     self.send_response(404)
 
             elif route.startswith("/gene?"):
@@ -65,11 +65,11 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     gene_name = param['gene_name'][0]#clave sequence_number que eliges en el desplegable, accedo a la posición 0(la unica que hay)
                     filename = os.path.join(".","sequences", f"{gene_name}.txt")
                     sequence.seq_read_fasta(filename)
-                    contents = Path("gene.html").read_text()
+                    contents = Path("html/gene.html").read_text()
                     self.send_response(200)
 
                 except IndexError:
-                    contents = Path(f"error.html").read_text()
+                    contents = Path(f"html/error.html").read_text()
                     self.send_response(404)
             elif route.startswith("/operation?"):
                 parsed_url = urlparse(route)
@@ -79,7 +79,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     operation = param['operation'][0]
                     if operation in ["complementary", "reverse", "information"]:
                         sequence = Seq(bases)
-                        contents = Path("operation.html").read_text()
+                        contents = Path("html/operation.html").read_text()
                         if operation == "information":
                             contents += f"<p> {sequence.info()}</p>"
                         elif operation == "complementary":
@@ -88,18 +88,18 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                             contents += f"<p> {sequence.reverse()}</p>"
                         self.send_response(200)
                     else:
-                        contents = Path("error.html").read_text()
+                        contents = Path("html/error.html").read_text()
                         self.send_response(404)
                 except IndexError:
-                    contents = Path("error.html").read_text()
+                    contents = Path("html/error.html").read_text()
                     self.send_response(404)
             else:
-                contents = Path("error.html").read_text()
+                contents = Path("html/error.html").read_text()
                 self.send_response(404)
 
 
         except FileNotFoundError:
-            contents = Path("error.html").read_text()
+            contents = Path("html/error.html").read_text()
             self.send_response(404)
 
         # IN this simple server version:

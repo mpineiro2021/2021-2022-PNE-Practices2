@@ -13,8 +13,8 @@ GENE_LIST = ["ADA", "FRAT1", "FXN", "RNU6_269P", "U5"]
 SEQUENCES_LIST = ["AAAAAAAAAT", "AAACCCCCCCTTTTGGGA", "CCCCCCCGGCGCA", "TTTATATATTATA", "GGGAGAGAGTCTCTCA", "TAATCGAAACCC"]
 
 def read_html_file(filename):
-    contents = Path( filename).read_text()
-    contents = j.Template(contents)
+    contents = Path( HTML_FOLDER + filename).read_text()#./html/ping.html
+    contents = j.Template(contents)#crea una plantilla de ese nombre
     return contents
 
 
@@ -61,34 +61,45 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         url_path = urlparse(self.path)# a la función urlparse se le pasa el path
         path = url_path.path
         arguments = parse_qs(url_path.query)
-        print("The new path is", url_path.path)
-        print("arguments", arguments)
+        print(path, arguments)
+
         # Message to send back to the clinet
-        if self.path == "/":
-            contents = read_html_file("index.html").render(context={"n_sequences": len(SEQUENCES_LIST),"genes":GENE_LIST})
+        if path == "/":
+            contents = read_html_file("index.html").render(context={"n_sequences": len(SEQUENCES_LIST), "genes":GENE_LIST})
         elif path == "/ping":
-            contents = read_html_file(path[1:] + ".html").render()
+            contents = read_html_file(path[1:] + ".html").render()#no se renderiza nada pq es una pag estática
         elif path == "/get":
-            n_sequence = int(arguments["n_sequence"][0])
-            sequence = SEQUENCES_LIST[n_sequence]
-            contents = read_html_file(path[1:] + ".html")\
-                .render(context = {"n_sequence": n_sequence,"sequence": sequence})
+
+            n_sequence = int(arguments["n_sequence"][0])#numbero de seq que llega
+            sequence = Seq(SEQUENCES_LIST[n_sequence])
+            contents = read_html_file(path[1:] + ".html").\
+                render(context={"n_sequence": n_sequence,"sequence": sequence})
+
         elif path == "/gene":
             gene_name = arguments["gene_name"][0]
             sequence = Path("./sequences/" + gene_name + ".txt").read_text()
-            contents = read_html_file(path[1:] + ".html") \
-                .render(context={"gene_name": gene_name,"sequence": sequence})
+            contents = read_html_file(path[1:] + ".html") .\
+                render(context={"gene_name": gene_name,"sequence": sequence})
         elif path == "/operation":
-            sequence = arguments["sequence"][0]
+            sequence = arguments["sequence"][0].upper()
             operation = arguments["operation"][0]
+            seq = Seq(sequence)
+
             if operation == "rev":
-                contents = read_html_file(path[1:] + ".html") \
-                    .render(context={"operation": operation,"result": Seq.reverse()})
+                contents = read_html_file(path[1:] + ".html") .\
+                    render(context={"sequence": sequence, "operation": operation,"result": seq.reverse()})
+
             elif operation == "info":
-                contents = read_html_file(path[1:] + ".html") \
-                    .render(context={"operation": operation,"result": info_operation(sequence)})
+                contents = read_html_file(path[1:] + ".html") .\
+                    render(context={"sequence": sequence, "operation": operation,"result": seq.info()})
+
+            elif operation == "comp":
+                contents = read_html_file(path[1:] + ".html"). \
+                    render(context={"sequence": sequence,"operation": operation, "result": seq.complement()})
+            else:
+                contents = read_html_file("error.html").render()
         else:
-            contents = "I am the happy server! :-)"
+            contents = Path("error.html").read_text()
 
         # Generating the response message
         self.send_response(200)  # -- Status line: OK!
