@@ -49,10 +49,14 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 answer = functions.info_server(ensembl_endpoint)
 
                 n_species = len(answer['species'])
+
                 list_dict_species = answer['species']
-                print(list_dict_species)
+
+                names = []
+                for s in list_dict_species:
+                    names.append(s['display_name'])
                 contents = read_html_file("list_species.html").\
-                    render(context={'n_species': n_species,'limit':limit, 'list_dict_species': list_dict_species})
+                    render(context={'n_species': n_species,'limit':limit, 'names': names})
 
             if len(arguments) == 1: #seria el limite que va :/listSpecies/limite
 
@@ -61,10 +65,11 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 answer = functions.info_server(ensembl_endpoint)
                 n_species = len(answer['species'])
                 list_dict_species = answer['species']
-                print(list_dict_species)
+                names = []
+                for s in list_dict_species:
+                    names.append(s['display_name'])
                 contents = read_html_file("list_species.html").\
-                    render(context={'n_species': n_species,'limit':limit, 'list_dict_species': list_dict_species})
-
+                    render(context={'n_species': n_species,'limit':limit, 'names': names})
 
 
 
@@ -80,6 +85,25 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             print(k_list)
             contents = read_html_file(path[1:] + ".html"). \
                     render(context={"karyo_list": k_list})
+
+
+        elif path == "/chromosomeLength":
+            species = arguments['species'][0]
+            chromosome = arguments['chromosome'][0]
+            ensembl_endpoint = "/info/assembly/" + species
+            answer = functions.info_server(ensembl_endpoint)
+            chromo_list = answer['top_level_region']
+            existing_chromo = True
+            c = 0
+            while (c in chromo_list) and existing_chromo:
+                if chromosome == c['name']:
+                    chromo_length = c['name']
+                    existing_chromo = False
+                c += 1
+
+            contents = read_html_file(path[1:] + ".html"). \
+                    render(context={"chromo_length": chromo_length})
+
 
 
 

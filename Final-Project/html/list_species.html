@@ -9,8 +9,8 @@
     <p>The limit you have selected is: {{context.limit}}</p>
     <p>The names of the species are: </p>
     <ul>
-        {% for s in context.list_dict_species[:context.limit]: %}
-            <li>{{s['display_name']}}</li>
+        {% for n in context.names[:context.limit]: %}
+            <li>{{n}}</li>
         {% endfor %}
     </ul>
 
