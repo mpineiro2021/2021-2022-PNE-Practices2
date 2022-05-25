@@ -7,7 +7,10 @@ import jinja2 as j
 from urllib.parse import parse_qs, urlparse
 from Sequence import Seq
 import http.client
-import json
+import functions
+
+
+
 
 
 
@@ -33,53 +36,62 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         path = url_path.path #endpoint
         arguments = parse_qs(url_path.query)#parameters
         print(path, arguments)
+        contents = ""
 
         if path == "/":
             contents = read_html_file("index.html").render()
 
         elif path == "/listSpecies":
+            if len(arguments) == 0: #seria el limite que va :/listSpecies/limite
 
-            ENDPOINT = '/info/species'
-            PARAMS = "?content-type=application/json"
-            conn = http.client.HTTPConnection(SERVER)
-            try:
-            conn.request("GET", ENDPOINT + PARAMS)
-            except ConnectionRefusedError:
-            print("ERROR! Cannot connect to the Server")
-            exit()
-            r1 = conn.getresponse()
-            data = r1.read().decode("utf-8")
-            data = json.loads(data)
+                limit = None
+                ensembl_endpoint = "/info/species"
+                answer = functions.info_server(ensembl_endpoint)
 
-        if len(arguments) == 0:
-            limit = None
-            species = data['species']
-            context_html = {
-            "total": len(species),
-            "species": species,
-            "limit": limit
-            }
-            contents = read_html_file("./html/species.html").render(context=context_html)
-            elif len(arguments) == 1:
-            try:
-            limit = int(arguments['limit'][0])
-            species = data['species']
-            context_html = {
-            "total": len(species),
-            "species": species,
-            "limit": limit
-            }
-            contents = read_html_file("./html/species.html").render(context=context_html)
-        except Exception:
-        contents = read_html_file(HTML_FOLDER + "error.html")
+                n_species = len(answer['species'])
+                list_dict_species = answer['species']
+                print(list_dict_species)
+                contents = read_html_file("list_species.html").\
+                    render(context={'n_species': n_species,'limit':limit, 'list_dict_species': list_dict_species})
+
+            if len(arguments) == 1: #seria el limite que va :/listSpecies/limite
+
+                limit = int(arguments['limit'][0])
+                ensembl_endpoint = "/info/species"
+                answer = functions.info_server(ensembl_endpoint)
+                n_species = len(answer['species'])
+                list_dict_species = answer['species']
+                print(list_dict_species)
+                contents = read_html_file("list_species.html").\
+                    render(context={'n_species': n_species,'limit':limit, 'list_dict_species': list_dict_species})
+
+
+
+
+
+
+        elif path == "/karyotype":
+
+            species = arguments['species'][0]
+            ensembl_endpoint = "/info/assembly/" + species
+            answer = functions.info_server(ensembl_endpoint)
+            print(answer)
+            k_list = answer['karyotype']
+            print(k_list)
+            contents = read_html_file(path[1:] + ".html"). \
+                    render(context={"karyo_list": k_list})
+
+
+
 
 
         else:
-        contents = Path("error.html").read_text()
+            contents = read_html_file("error.html").render()
+
 
         # Generating the response message
-        self.send_response(200)  # -- Status line: OK!
 
+        self.send_response(200)  # -- Status line: OK!
         # Define the content-type header:
         self.send_header('Content-Type', 'text/html')
         self.send_header('Content-Length', len(contents.encode()))
