@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlparse
 from Sequence import Seq
 import http.client
 import functions
+GENES = {'FRAT1' : "ENSG00000165879", 'ADA' : 'ENSG00000196839','FXN' : 'ENSG00000165060','RNU6_269P' : 'ENSG00000212379','MIR633' : 'ENSG00000207552' ,'TTTY4C' : 'ENSG00000228296','RBMY2YP' : 'ENSG00000227633','FGFR3' : 'ENSG00000068078','KDR' : 'ENSG00000128052','ANK2' : 'ENSG00000145362'}
 
 
 
@@ -39,7 +40,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         contents = ""
 
         if path == "/":
-            contents = read_html_file("index.html").render()
+            contents = read_html_file("index.html").render(context={'genes': GENES})
 
         elif path == "/listSpecies":
             try:
@@ -113,6 +114,41 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                         render(context={"chromo_length": chromo_length})
             except KeyError:
                 contents = read_html_file("error.html").render()
+
+        elif path == "/chromosomeLength":
+            try:
+                species = arguments['species'][0]
+                chromosome = arguments['chromosome'][0]
+                ensembl_endpoint = "/info/assembly/" + species
+                answer = functions.info_server(ensembl_endpoint)
+                c_length = answer['top_level_region']
+                chromo_length = 0 #poner un valor pq sino la estamos llamando antes de tener su valor
+                finish = True
+                while finish:
+                    for c in c_length:
+                        if chromosome == c['name'] :
+                            chromo_length = c['length']
+                            finish = False
+
+
+                contents = read_html_file("chromosome_length.html"). \
+                        render(context={"chromo_length": chromo_length})
+            except KeyError:
+                contents = read_html_file("error.html").render()
+
+        elif path == "/geneSeq":
+            try:
+                gene = arguments['gene'][0]
+                id = GENES[gene]
+                ensembl_endpoint = '/sequence/id/' + id
+                answer = functions.info_server(ensembl_endpoint)
+                gene_sequence = answer['seq']
+                contents = read_html_file("gene_seq.html"). \
+                   render(context={"gene_sequence": gene_sequence, "gene": gene})
+            except ValueError:
+                contents = read_html_file("error.html").render()
+
+
 
 
         else:

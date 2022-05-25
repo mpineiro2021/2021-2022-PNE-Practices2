@@ -35,3 +35,37 @@
     </form>
   <hr>
 
+    <h2>MEDIUM Level Services</h2>
+    <p>4) Gene Seq</p>
+    <form action="/geneSeq">
+         Get a gene.:
+        <select name="gene">
+            {% for g in context.genes %}
+            <option value={{g}}>{{g}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Get it!">
+    </form>
+
+    <p>5) Gene Info</p>
+    <form action="geneInfo" method="get">
+      <label>Gene: <input type="text" name="gene"></label>
+        <br>
+      <input type="submit" value="Send">
+    </form>
+
+    <p>6) Gene Calc</p>
+    <form action="geneCalc" method="get">
+      <label>Gene: <input type="text" name="gene"></label>
+        <br>
+      <input type="submit" value="Send">
+    </form>
+
+    <p>7) Gene List</p>
+    <form action="geneList" method="get">
+      <label>Chromosome: <input type="text" name="chromo"></label><br>
+      <label>Start: <input type="text" name="start"></label><br>
+      <label>End: <input type="text" name="end"></label><br>
+      <input type="submit" value="Send">
+    </form>
+
