@@ -42,71 +42,77 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             contents = read_html_file("index.html").render()
 
         elif path == "/listSpecies":
-            if len(arguments) == 0: #seria el limite que va :/listSpecies/limite
+            try:
+                if len(arguments) == 0: #seria el limite que va :/listSpecies/limite
 
-                limit = None
-                ensembl_endpoint = "/info/species"
-                answer = functions.info_server(ensembl_endpoint)
+                    limit = None
+                    ensembl_endpoint = "/info/species"
+                    answer = functions.info_server(ensembl_endpoint)
 
-                n_species = len(answer['species'])
+                    n_species = len(answer['species'])
 
-                list_dict_species = answer['species']
+                    list_dict_species = answer['species']
 
-                names = []
-                for s in list_dict_species:
-                    names.append(s['display_name'])
-                contents = read_html_file("list_species.html").\
-                    render(context={'n_species': n_species,'limit':limit, 'names': names})
+                    names = []
+                    for s in list_dict_species:
+                        names.append(s['display_name'])
+                    contents = read_html_file("list_species.html").\
+                        render(context={'n_species': n_species,'limit':limit, 'names': names})
 
-            if len(arguments) == 1: #seria el limite que va :/listSpecies/limite
+                if len(arguments) == 1: #seria el limite que va :/listSpecies/limite
 
-                limit = int(arguments['limit'][0])
-                ensembl_endpoint = "/info/species"
-                answer = functions.info_server(ensembl_endpoint)
-                n_species = len(answer['species'])
-                list_dict_species = answer['species']
-                names = []
-                for s in list_dict_species:
-                    names.append(s['display_name'])
-                contents = read_html_file("list_species.html").\
-                    render(context={'n_species': n_species,'limit':limit, 'names': names})
+                    limit = int(arguments['limit'][0])
+                    ensembl_endpoint = "/info/species"
+                    answer = functions.info_server(ensembl_endpoint)
+                    n_species = len(answer['species'])
+                    list_dict_species = answer['species']
+                    names = []
+                    for s in list_dict_species:
+                        names.append(s['display_name'])
+                    contents = read_html_file("list_species.html").\
+                        render(context={'n_species': n_species,'limit':limit, 'names': names})
+            except (KeyError, ValueError):
+                contents = read_html_file("error.html").render()
+
 
 
 
 
 
         elif path == "/karyotype":
-
-            species = arguments['species'][0]
-            ensembl_endpoint = "/info/assembly/" + species
-            answer = functions.info_server(ensembl_endpoint)
-            print(answer)
-            k_list = answer['karyotype']
-            print(k_list)
-            contents = read_html_file(path[1:] + ".html"). \
-                    render(context={"karyo_list": k_list})
+            try:
+                species = arguments['species'][0]
+                ensembl_endpoint = "/info/assembly/" + species
+                answer = functions.info_server(ensembl_endpoint)
+                print(answer)
+                k_list = answer['karyotype']
+                print(k_list)
+                contents = read_html_file(path[1:] + ".html"). \
+                        render(context={"karyo_list": k_list})
+            except (KeyError, ValueError):
+                contents = read_html_file("error.html").render()
 
 
         elif path == "/chromosomeLength":
-            species = arguments['species'][0]
-            chromosome = arguments['chromosome'][0]
-            ensembl_endpoint = "/info/assembly/" + species
-            answer = functions.info_server(ensembl_endpoint)
-            chromo_list = answer['top_level_region']
-            existing_chromo = True
-            c = 0
-            while (c in chromo_list) and existing_chromo:
-                if chromosome == c['name']:
-                    chromo_length = c['name']
-                    existing_chromo = False
-                c += 1
-
-            contents = read_html_file(path[1:] + ".html"). \
-                    render(context={"chromo_length": chromo_length})
+            try:
+                species = arguments['species'][0]
+                chromosome = arguments['chromosome'][0]
+                ensembl_endpoint = "/info/assembly/" + species
+                answer = functions.info_server(ensembl_endpoint)
+                c_length = answer['top_level_region']
+                chromo_length = 0 #poner un valor pq sino la estamos llamando antes de tener su valor
+                finish = True
+                while finish:
+                    for c in c_length:
+                        if chromosome == c['name'] :
+                            chromo_length = c['length']
+                            finish = False
 
 
-
-
+                contents = read_html_file("chromosome_length.html"). \
+                        render(context={"chromo_length": chromo_length})
+            except KeyError:
+                contents = read_html_file("error.html").render()
 
 
         else:
