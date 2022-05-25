@@ -3,12 +3,12 @@
     <meta charset="utf-8">
     <title>Welcome!!!</title>
   </head>
-  <body style="background: lightgoldenrodyellow">
+  <body style="background: dodgerblue">
     <h1>Browsing Human and Vertebrates genome</h1>
 
     <h2>BASIC Level Services</h2>
 
-    <p>1) List of species in the genome database</p>
+    <p>1) List of species in the genome database:</p>
     <form action="listSpecies" method="get">
       <label>Limit: <input type="text" name="limit"></label>
       <br><br>
@@ -33,10 +33,11 @@
       <br>
       <input type="submit" value="Send">
     </form>
-  <hr>
+    <hr>
+    <hr>
 
     <h2>MEDIUM Level Services</h2>
-    <p>4) Gene Seq</p>
+    <p>4) Sequence of a Gene:</p>
     <form action="/geneSeq">
          Get a gene.:
         <select name="gene">
@@ -44,28 +45,32 @@
             <option value={{g}}>{{g}}</option>
             {% endfor %}
         </select>
+          <br>
         <input type="submit" value="Get it!">
     </form>
 
-    <p>5) Gene Info</p>
+    <p>5) Gene Information:</p>
     <form action="geneInfo" method="get">
       <label>Gene: <input type="text" name="gene"></label>
         <br>
-      <input type="submit" value="Send">
+      <input type="submit" value="Get it!">
     </form>
 
-    <p>6) Gene Calc</p>
+    <p>6) Gene Calculations:</p>
     <form action="geneCalc" method="get">
       <label>Gene: <input type="text" name="gene"></label>
         <br>
-      <input type="submit" value="Send">
+      <input type="submit" value="Get it!">
     </form>
 
-    <p>7) Gene List</p>
+    <p>7) Gene List:</p>
     <form action="geneList" method="get">
       <label>Chromosome: <input type="text" name="chromo"></label><br>
+      <br>
       <label>Start: <input type="text" name="start"></label><br>
+      <br>
       <label>End: <input type="text" name="end"></label><br>
-      <input type="submit" value="Send">
+      <br>
+      <input type="submit" value="Get it!">
     </form>
 
