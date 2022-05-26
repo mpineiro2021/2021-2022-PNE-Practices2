@@ -148,6 +148,26 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
             except ValueError:
                 contents = read_html_file("error.html").render()
 
+        elif path == "/geneInfo":
+            #try:
+            gene = (arguments['gene'][0])
+            id = GENES[gene]
+            ensembl_endpoint = '/sequence/id/' + id
+            answer = functions.info_server(ensembl_endpoint)
+            information = (answer['desc']).split(":")
+            print (information)
+            start = information[3]
+            end = information[4]
+            name = information[1]
+            length = int(end) - int(start)
+            contents = read_html_file("gene_info.html"). \
+                   render(context={"start": start, "gene": gene, "end":end, "name":name, "length":length, "id":id})
+            #except (ValueError, IndexError, KeyError):
+              #  contents = read_html_file("error.html").render()
+
+
+
+
 
 
 

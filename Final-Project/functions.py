@@ -24,3 +24,4 @@ def info_server(ENDPOINT):
     data = r1.read().decode("utf-8")
     data = json.loads(data)
     return data
+

@@ -38,8 +38,8 @@
 
     <h2>MEDIUM Level Services</h2>
     <p>4) Sequence of a Gene:</p>
-    <form action="/geneSeq">
-         Get a gene.:
+    <form action="/geneSeq"  method=""get>
+         Select a gene:
         <select name="gene">
             {% for g in context.genes %}
             <option value={{g}}>{{g}}</option>
@@ -50,8 +50,13 @@
     </form>
 
     <p>5) Gene Information:</p>
-    <form action="geneInfo" method="get">
-      <label>Gene: <input type="text" name="gene"></label>
+    <form action="/geneInfo" method="get">
+        Select a gene:
+        <select name="gene">
+            {% for g in context.genes %}
+            <option value={{g}}>{{g}}</option>
+            {% endfor %}
+        </select>
         <br>
       <input type="submit" value="Get it!">
     </form>
