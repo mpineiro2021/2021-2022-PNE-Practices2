@@ -59,7 +59,7 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     contents = read_html_file("list_species.html").\
                         render(context={'n_species': n_species,'limit':limit, 'names': names})
 
-                if len(arguments) == 1: #seria el limite que va :/listSpecies/limite
+                elif len(arguments) == 1: #seria el limite que va :/listSpecies/limite
 
                     limit = int(arguments['limit'][0])
                     ensembl_endpoint = "/info/species"
@@ -72,7 +72,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                     contents = read_html_file("list_species.html").\
                         render(context={'n_species': n_species,'limit':limit, 'names': names})
             except (KeyError, ValueError):
-                contents = read_html_file("error.html").render()
+                context = "Introduce an integer number for the limit"
+                contents = read_html_file("error.html").render(context={'context':context})
 
 
 
@@ -90,7 +91,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents = read_html_file(path[1:] + ".html"). \
                         render(context={"karyo_list": k_list})
             except (KeyError, ValueError):
-                contents = read_html_file("error.html").render()
+                context = "Not available Karyotype, select other specie"
+                contents = read_html_file("error.html").render(context={'context':context})
 
 
         elif path == "/chromosomeLength":
@@ -112,28 +114,10 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents = read_html_file("chromosome_length.html"). \
                         render(context={"chromo_length": chromo_length})
             except KeyError:
-                contents = read_html_file("error.html").render()
-
-        elif path == "/chromosomeLength":
-            try:
-                species = arguments['species'][0]
-                chromosome = arguments['chromosome'][0]
-                ensembl_endpoint = "/info/assembly/" + species
-                answer = functions.info_server(ensembl_endpoint)
-                c_length = answer['top_level_region']
-                chromo_length = 0 #poner un valor pq sino la estamos llamando antes de tener su valor
-                finish = True
-                while finish:
-                    for c in c_length:
-                        if chromosome == c['name'] :
-                            chromo_length = c['length']
-                            finish = False
+                context = "Not available chromosome length, select other species or chromosomes"
+                contents = read_html_file("error.html").render(context={'context':context})
 
 
-                contents = read_html_file("chromosome_length.html"). \
-                        render(context={"chromo_length": chromo_length})
-            except KeyError:
-                contents = read_html_file("error.html").render()
 
         elif path == "/geneSeq":
             try:
@@ -145,7 +129,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents = read_html_file("gene_seq.html"). \
                    render(context={"gene_sequence": gene_sequence, "gene": gene})
             except ValueError:
-                contents = read_html_file("error.html").render()
+                context = "Select another gene"
+                contents = read_html_file("error.html").render(context={'context':context})
 
         elif path == "/geneInfo":
             try:
@@ -162,7 +147,8 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents = read_html_file("gene_info.html"). \
                        render(context={"start": start, "gene": gene, "end":end, "name":name, "length":length, "id":id})
             except (ValueError, IndexError, KeyError):
-                contents = read_html_file("error.html").render()
+                context = "Not available information for that gene, select another one"
+                contents = read_html_file("error.html").render(context={'context':context})
 
 
         elif path == "/geneCalc":
@@ -178,53 +164,45 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents = read_html_file("gene_calc.html"). \
                     render(context={ "gene": gene, "calc":calc})
             except (ValueError, IndexError, KeyError):
-                contents = read_html_file("error.html").render()
+                context = "Not available calculations for that gene, select another one"
+                contents = read_html_file("error.html").render(context={'context':context})
 
         elif path == "/geneList":
-            #try:
-            if len(arguments) == 3:
-                chromosome = (arguments['chromosome'][0])
-                start = (arguments['start'][0])
-                end = (arguments['end'][0])
-                ensembl_endpoint = f'/phenotype/region/homo_sapiens/{chromosome}:{start}-{end}'
-                answer = functions.info_server(ensembl_endpoint)
-                print(answer)
-                gene_list = []
-                for dictionary in answer:
-                    dict_list = dictionary['phenotype_associations']
-                    for i in dict_list:
-                        try:
-                            gene_list.append( i['attributes']['associated_gene'])
-                        except KeyError:
-                            pass
-                if len(gene_list) == 0:
-                    contents = read_html_file("error.html").render()
+
+            try:
+                if len(arguments) == 3:
+                    chromosome = (arguments['chromosome'][0])
+                    start = (arguments['start'][0])
+                    end = (arguments['end'][0])
+                    ensembl_endpoint = f'/phenotype/region/homo_sapiens/{chromosome}:{start}-{end}'
+                    answer = functions.info_server(ensembl_endpoint)
+                    print(answer)
+                    gene_list = []
+                    for dictionary in answer:
+                        dict_list = dictionary['phenotype_associations']
+                        for i in dict_list:
+                            try:
+                                gene_list.append( i['attributes']['associated_gene'])
+                            except KeyError:
+                                pass
+                    if len(gene_list) == 0:
+                        context = "Introduce different parameters"
+                        contents = read_html_file("error.html").render(context={'context':context})
+                    else:
+                        contents = read_html_file("gene_list.html"). \
+                            render(context={ "gene_list":gene_list, 'chromosome':chromosome})
+
+
                 else:
-                    contents = read_html_file("gene_list.html"). \
-                        render(context={ "gene_list":gene_list, 'chromosome':chromosome})
-
-
-            else:
-                contents = read_html_file("error.html").render()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    context = "Introduce 3 parameters"
+                    contents = read_html_file("error.html").render(context={'context':context})
+            except Exception:
+                context = "Resource Not available, introduce different integer parameters"
+                contents = read_html_file("error.html").render(context={'context':context})
 
         else:
-            contents = read_html_file("error.html").render()
+            context = 'Invalid path, choose a different one'
+            contents = read_html_file("error.html").render(context={'context':context})
 
 
         # Generating the response message
