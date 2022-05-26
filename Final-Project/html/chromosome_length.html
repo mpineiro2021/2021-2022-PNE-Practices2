@@ -5,7 +5,13 @@
     <title>Chromosome Length</title>
 </head>
 <body style="background-color: lightblue;">
-    <p>The length of the chromosome is: {{context.chromo_length}}</p>
+    <p>The list of chromosomes with a length greater than{{context.length}}</p>
+    <ul>
+        {% for n in context.chromosome_name: %}
+            <li>{{n}}</li>
+        {% endfor %}
+
+    </ul>
     <a href="/">Main page</a>
 
 </body>

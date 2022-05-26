@@ -98,25 +98,36 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
         elif path == "/chromosomeLength":
             try:
                 species = arguments['species'][0]
-                chromosome = arguments['chromosome'][0]
+                length = int(arguments['length'][0])
                 ensembl_endpoint = "/info/assembly/" + species
                 answer = functions.info_server(ensembl_endpoint)
-                c_length = answer['top_level_region']
-                chromo_length = 0 #poner un valor pq sino la estamos llamando antes de tener su valor
-                finish = True
-                while finish:
-                    for c in c_length:
-                        if chromosome == c['name'] :
-                            chromo_length = c['length']
-                            finish = False
+                print(answer)
+                dict_list = answer['top_level_region']
+                chromosome_name = []
 
-
-                contents = read_html_file("chromosome_length.html"). \
-                        render(context={"chromo_length": chromo_length})
+                if length < 0:
+                    context = "Introduce a positive number"
+                    contents = read_html_file("error.html").render(context={'context': context})
+                else:
+                    for d in dict_list:
+                        try:
+                            if int(d['length']) >= length:
+                                if d['coord_system'] == 'chromosome':
+                                    chromosome_name.append(d['name'])
+                        except KeyError:
+                            pass
+                if len(chromosome_name) == 0:
+                    context = "Introduce a lower number"
+                    contents = read_html_file("error.html").render(context={'context': context})
+                else:
+                    contents = read_html_file("chromosome_length.html"). \
+                            render(context={"chromosome_name": chromosome_name, "length":length})
             except KeyError:
                 context = "Not available chromosome length, select other species or chromosomes"
                 contents = read_html_file("error.html").render(context={'context':context})
-
+            except ValueError:
+                context = "Introduce a number, not an string!!!"
+                contents = read_html_file("error.html").render(context={'context':context})
 
 
         elif path == "/geneSeq":
