@@ -1,5 +1,4 @@
 import http.server
-import http.client
 import socketserver
 import termcolor
 from pathlib import Path
@@ -149,21 +148,74 @@ class TestHandler(http.server.BaseHTTPRequestHandler):
                 contents = read_html_file("error.html").render()
 
         elif path == "/geneInfo":
+            try:
+                gene = (arguments['gene'][0])
+                id = GENES[gene]
+                ensembl_endpoint = '/sequence/id/' + id
+                answer = functions.info_server(ensembl_endpoint)
+                information = (answer['desc']).split(":")
+                print (information)
+                start = information[3]
+                end = information[4]
+                name = information[1]
+                length = int(end) - int(start)
+                contents = read_html_file("gene_info.html"). \
+                       render(context={"start": start, "gene": gene, "end":end, "name":name, "length":length, "id":id})
+            except (ValueError, IndexError, KeyError):
+                contents = read_html_file("error.html").render()
+
+
+        elif path == "/geneCalc":
+            try:
+                gene = (arguments['gene'][0])
+                id = GENES[gene]
+                ensembl_endpoint = '/sequence/id/' + id
+                answer = functions.info_server(ensembl_endpoint)
+                gene_sequence = answer['seq']
+                seq = Seq(gene_sequence)
+                calc = seq.percentage_length()
+
+                contents = read_html_file("gene_calc.html"). \
+                    render(context={ "gene": gene, "calc":calc})
+            except (ValueError, IndexError, KeyError):
+                contents = read_html_file("error.html").render()
+
+        elif path == "/geneList":
             #try:
-            gene = (arguments['gene'][0])
-            id = GENES[gene]
-            ensembl_endpoint = '/sequence/id/' + id
-            answer = functions.info_server(ensembl_endpoint)
-            information = (answer['desc']).split(":")
-            print (information)
-            start = information[3]
-            end = information[4]
-            name = information[1]
-            length = int(end) - int(start)
-            contents = read_html_file("gene_info.html"). \
-                   render(context={"start": start, "gene": gene, "end":end, "name":name, "length":length, "id":id})
-            #except (ValueError, IndexError, KeyError):
-              #  contents = read_html_file("error.html").render()
+            if len(arguments) == 3:
+                chromosome = (arguments['chromosome'][0])
+                start = (arguments['start'][0])
+                end = (arguments['end'][0])
+                ensembl_endpoint = f'/phenotype/region/homo_sapiens/{chromosome}:{start}-{end}'
+                answer = functions.info_server(ensembl_endpoint)
+                print(answer)
+                gene_list = []
+                for dictionary in answer:
+                    dict_list = dictionary['phenotype_associations']
+                    for i in dict_list:
+                        try:
+                            gene_list.append( i['attributes']['associated_gene'])
+                        except KeyError:
+                            pass
+                if len(gene_list) == 0:
+                    contents = read_html_file("error.html").render()
+                else:
+                    contents = read_html_file("gene_list.html"). \
+                        render(context={ "gene_list":gene_list, 'chromosome':chromosome})
+
+
+            else:
+                contents = read_html_file("error.html").render()
+
+
+
+
+
+
+
+
+
+
 
 
 

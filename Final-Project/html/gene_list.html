@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gene List</title>
+</head>
+<body style="background-color: lightblue;">
+    <h2>Name of the genes located in the chromosome {{context.chromosome}}</h2>
+    <ul>
+        {% for n in context.gene_list: %}
+            <li>{{n}}</li>
+        {% endfor %}
+    </ul>
+    <a href="/">Main page</a>
+</body>
+</html>

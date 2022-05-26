@@ -25,3 +25,6 @@ def info_server(ENDPOINT):
     data = json.loads(data)
     return data
 
+
+
+

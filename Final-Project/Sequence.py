@@ -73,7 +73,7 @@ class Seq:
         result = f"Total length: {self.len()}\n"
         most_frequent_base = None
         for base, count in self.count().items():
-            result += f"{base}: {count} ({((count*100) / self.len()):.1f}%)\n"
+            result += f"\n{base}: {count} ({((count*100) / self.len()):.1f}%)\n"
             if most_frequent_base:
                 if count > self.count_base(most_frequent_base):
                     most_frequent_base = base
@@ -89,6 +89,14 @@ class Seq:
         for base in self.bases:
             numb = numb * Seq.NUMBERS[base]
         return numb
+
+    def percentage_length(self):
+        result = f"sequence: {self.bases}\n"
+        result = f"Total length: {self.len()}\n"
+        most_frequent_base = None
+        for base, count in self.count().items():
+            result += f"\n{base}: {count} ({((count*100) / self.len()):.1f}%)\n"
+        return result
 
 
 
